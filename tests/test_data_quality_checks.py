@@ -2,14 +2,16 @@ import pytest
 from sqlalchemy import create_engine
 
 from data_quality_checks import (
-    init_engine_and_load_data,
-    read_excel_to_dataframe,
     unique_check,
     no_nulls_check,
     type_check,
     data_quality_check,
 )
 
+from main import (
+    init_engine_and_load_data,
+    read_excel_to_dataframe,
+)
 
 @pytest.fixture
 def set_up():

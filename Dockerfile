@@ -9,4 +9,4 @@ COPY ./tests /app/tests/
 
 RUN pip install -r requirements.txt
 
-CMD ["python3", "data_quality_checks.py"]
+CMD ["python3", "main.py"]
