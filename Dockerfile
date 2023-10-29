@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY input_data.xlsx .
 COPY requirements.txt .
-COPY *.py .
+COPY ./application /app/
 COPY ./tests /app/tests/
 
 RUN pip install -r requirements.txt
