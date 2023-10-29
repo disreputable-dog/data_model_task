@@ -23,10 +23,11 @@ if __name__ == "__main__":
     ) as conn:
         data_quality_check(run_all_data_quality_checks(conn))
 
-    db_path = "/app/hello.db"
+    db_path = "/app/databases/hello.db"
     if not os.path.exists(db_path):
         # Create an empty SQLite database if it doesn't exist
-        open(db_path, 'a').close()
+        open(db_path, "a").close()
+        print("hello")
 
     with init_engine_and_load_data(
         create_engine(f"sqlite:///{db_path}"),

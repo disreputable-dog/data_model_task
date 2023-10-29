@@ -2,7 +2,7 @@ build:
 	docker build . -t data_modelling
 
 run: build
-	docker run --rm -v $(shell pwd)/databases:/app/hello.db data_modelling
+	docker run --rm -v $(shell pwd)/databases:/app/databases data_modelling
 	# docker run --name data_modelling data_modelling && \
 	# docker cp data_modelling:/app/hello.db hello.db; \
 	# docker rm data_modelling
