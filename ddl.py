@@ -35,9 +35,7 @@ def ddl(conn):
     Table(
         "dim_delivery_details",
         metadata,
-        Column(
-            "DeliveryId", Integer, primary_key=True
-        ),
+        Column("DeliveryId", Integer, primary_key=True, autoincrement=True),
         Column("DeliveryAddress", String, unique=True, nullable=False),
         Column("DeliveryPostcode", String, unique=True, nullable=False),
         Column("ClientName", String),
@@ -50,7 +48,10 @@ def ddl(conn):
         "dim_product_details",
         metadata,
         Column(
-            "ProductId", Integer, primary_key=True
+            "ProductId",
+            Integer,
+            primary_key=True,
+            autoincrement=True,
         ),
         Column("ProductName", String, unique=True, nullable=False),
         Column("ProductType", String),
@@ -61,7 +62,10 @@ def ddl(conn):
         "dim_payment_details",
         metadata,
         Column(
-            "PaymentId", Integer, primary_key=True
+            "PaymentId",
+            Integer,
+            primary_key=True,
+            autoincrement=True,
         ),
         Column("PaymentBillingCode", String, unique=True, nullable=False),
         Column("PaymentType", String),
