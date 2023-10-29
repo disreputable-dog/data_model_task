@@ -39,7 +39,7 @@ if __name__ == "__main__":
         conn.execute(
             text(
                 """
-        INSERT INTO dim_delivery_details (DeliveryAddress, DeliveryPostcode, DeliveryCity, DeliveryCountry, DeliveryContactNumber, ClientName)
+        INSERT OR IGNORE INTO dim_delivery_details (DeliveryAddress, DeliveryPostcode, DeliveryCity, DeliveryCountry, DeliveryContactNumber, ClientName)
         SELECT DeliveryAddress, DeliveryPostcode, DeliveryCity, DeliveryCountry, DeliveryContactNumber, ClientName
         FROM staging
         GROUP BY LOWER(DeliveryAddress), LOWER(DeliveryPostcode)
@@ -50,7 +50,7 @@ if __name__ == "__main__":
         conn.execute(
             text(
                 """
-        INSERT INTO dim_product_details (ProductName, ProductType, UnitPrice)
+        INSERT OR IGNORE INTO dim_product_details (ProductName, ProductType, UnitPrice)
         SELECT ProductName, ProductType, MAX(UnitPrice) as UnitPrice
         FROM staging
         GROUP BY LOWER(ProductName);
@@ -61,7 +61,7 @@ if __name__ == "__main__":
         conn.execute(
             text(
                 """
-        INSERT INTO dim_payment_details (PaymentBillingCode, PaymentType, PaymentDate)
+        INSERT OR IGNORE INTO dim_payment_details (PaymentBillingCode, PaymentType, PaymentDate)
         SELECT PaymentBillingCode, PaymentType, PaymentDate
         FROM staging
         GROUP BY LOWER(PaymentBillingCode), LOWER(PaymentType), LOWER(PaymentDate)
@@ -72,7 +72,7 @@ if __name__ == "__main__":
         conn.execute(
             text(
                 """
-                INSERT INTO fact_orders (OrderNumber, DeliveryId, ProductId, PaymentId, TotalPrice, Currency, ProductQuantity, ClientName)
+                INSERT OR IGNORE INTO fact_orders (OrderNumber, DeliveryId, ProductId, PaymentId, TotalPrice, Currency, ProductQuantity, ClientName)
                 SELECT
                     s.OrderNumber,
                     d.DeliveryId,
