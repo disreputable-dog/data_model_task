@@ -1,2 +1,4 @@
 .DS_Store
 data model.xlsx
+__pycache__
+*.db

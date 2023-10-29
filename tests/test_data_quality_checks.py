@@ -8,7 +8,7 @@ from data_quality_checks import (
     data_quality_check,
 )
 
-from main import (
+from init_db_connection import (
     init_engine_and_load_data,
     read_excel_to_dataframe,
 )
