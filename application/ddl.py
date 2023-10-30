@@ -1,3 +1,5 @@
+from datetime import date
+
 from sqlalchemy import MetaData, Table, Column, String, Float, Integer, Date, ForeignKey
 
 
@@ -29,19 +31,21 @@ def ddl(conn):
         Column("TotalPrice", Float, nullable=False),
         Column("Currency", String, nullable=False),
         Column("ProductQuantity", Integer, nullable=False),
-        Column("ClientName", String),
     )
 
     Table(
         "dim_delivery_details",
         metadata,
         Column("DeliveryId", Integer, primary_key=True, autoincrement=True),
-        Column("DeliveryAddress", String, unique=True, nullable=False),
-        Column("DeliveryPostcode", String, unique=True, nullable=False),
-        Column("ClientName", String),
+        Column("ClientName", String, nullable=False),
+        Column("DeliveryAddress", String, nullable=False),
+        Column("DeliveryPostcode", String, nullable=False),
         Column("DeliveryCity", String),
         Column("DeliveryCountry", String),
         Column("DeliveryContactNumber", String),
+        Column("ValidFrom", Date, default=date.today().strftime("%d/%m/%Y")),
+        Column("ValidTo", Date),
+        Column("MostRecent", Integer, nullable=False, default=0),
     )
 
     Table(

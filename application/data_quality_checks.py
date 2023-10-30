@@ -76,6 +76,7 @@ def run_all_data_quality_checks(conn: Connection) -> dict:
             "ProductQuantity": no_nulls_check(conn, "ProductQuantity"),
             "TotalPrice": no_nulls_check(conn, "TotalPrice"),
             "Currency": no_nulls_check(conn, "Currency"),
+            "ClientName": no_nulls_check(conn, "ClientName"),
             "DeliveryAddress": no_nulls_check(conn, "DeliveryAddress"),
             "DeliveryPostcode": no_nulls_check(conn, "DeliveryPostcode"),
             "PaymentType": no_nulls_check(conn, "PaymentType"),
@@ -94,7 +95,7 @@ def run_all_data_quality_checks(conn: Connection) -> dict:
             "DeliveryCountry": type_check(conn, "DeliveryCountry", "TEXT"),
             "PaymentType": type_check(conn, "PaymentType", "TEXT"),
             "PaymentBillingCode": type_check(conn, "PaymentBillingCode", "TEXT"),
-            "PaymentDate": type_check(conn, "PaymentDate", "DATETIME"),
+            "PaymentDate": type_check(conn, "PaymentDate", "DATE"),
         },
         "column_is_multiplied_correctly": {
             "TotalPrice": f"{price_calculation_check(conn)}"

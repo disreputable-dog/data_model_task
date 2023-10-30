@@ -28,9 +28,7 @@ if __name__ == "__main__":
 
     db_path = "/app/databases/hello.db"
     if not os.path.exists(db_path):
-        # Create an empty SQLite database if it doesn't exist
-        open(db_path, "a").close()
-        print("hello")
+        open(db_path, "a").close() # Create an empty SQLite database if it doesn't exist
 
     with init_engine_and_load_data(
         create_engine(f"sqlite:///{db_path}"),
