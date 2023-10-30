@@ -24,4 +24,12 @@ Here is the order of operations:
 
 ## Data Model
 
-Star schema was used as the data model. There's one *fact* table: **fact_orders**, and three *dimenstion* tables: **dim_delivery_details**, **dim_product_details**, **dim_payment_details**
+Star schema was used as the data model. 
+
+*fact table*:
+- **fact_orders**
+
+*dimension tables*:
+- **dim_delivery_details**
+- **dim_product_details**
+- **dim_payment_details**
