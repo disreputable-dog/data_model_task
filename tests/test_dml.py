@@ -28,14 +28,18 @@ def test_insert_into_dim_delivery_details(set_up_ddl, set_up):
     insert_into_dim_delivery_details(set_up)
 
     metadata = MetaData()
-
     dim_delivery_details = Table("dim_delivery_details", metadata, autoload_with=set_up)
 
-    results = list(set_up.execute(dim_delivery_details.select()))
-    print(results)
-    assert len(results) == 3
-    assert results[0][1] == '45 Park Avenue'
-    assert results[1][2] == 'SN4 9QP'
+    results = set_up.execute(dim_delivery_details.select()).fetchall()
+    results_as_dicts = [row._asdict() for row in results]
+
+    # Let's print out the results to see them in dictionary form
+    print(results_as_dicts)
+
+    assert len(results_as_dicts) == 3
+    assert results_as_dicts[0]['DeliveryAddress'] == '45 Park Avenue'
+    assert results_as_dicts[1]['DeliveryPostcode'] == 'SN4 9QP'
+
 
     print("-" * 50)
     for column in dim_delivery_details.c:
