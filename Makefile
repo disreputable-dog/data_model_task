@@ -8,5 +8,4 @@ test: build
 	docker run --rm -e PYTHONPATH=. data_modelling python3 -m pytest . -vv -rfE -s
 
 connect_db:
-	sqlite3 databases/hello.db .tables
-	sqlite3 databases/hello.db "SELECT * FROM fact_orders"
+	sqlite3 databases/orders.db

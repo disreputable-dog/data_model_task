@@ -66,6 +66,12 @@ def price_calculation_check(conn: Connection) -> bool:
 
 
 def run_all_data_quality_checks(conn: Connection) -> dict:
+    """
+    Runs the data quality checks for every applicable columns. Outputs
+    a convienent data structure for producing a data quality report for
+    the user in event of any failures
+    """
+
     return {
         "all_values_unique": {"OrderNumber": unique_check(conn, "OrderNumber")},
         "all_values_nonnull": {

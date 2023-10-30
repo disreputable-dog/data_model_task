@@ -13,6 +13,7 @@ from init_db_connection import (
     read_excel_to_dataframe,
 )
 
+
 @pytest.fixture
 def set_up():
     with init_engine_and_load_data(

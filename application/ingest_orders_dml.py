@@ -2,7 +2,11 @@ from sqlalchemy import text
 
 
 def insert_into_dim_delivery_details(conn):
-    # Update existing records for the client if they have changed
+    """
+    Insert DML for the delivery dim table. SQL handles slowly changing dimensions by
+    maintain an old record if the clients businessname or postcode/address changes
+    """
+
     conn.execute(
         text(
             """
@@ -25,7 +29,6 @@ def insert_into_dim_delivery_details(conn):
         )
     )
 
-    # Insert new records only if a MostRecent version doesn't exist or has changed
     conn.execute(
         text(
             """
@@ -48,7 +51,11 @@ def insert_into_dim_delivery_details(conn):
 
 
 def insert_into_dim_product_details(conn):
-    # SCD type 1 to handle price changes
+    """
+    Insert DML for the product details dim table. SQL handles slowly changing dimensions by
+    updating the record (not inserting) if the price changes
+    """
+
     conn.execute(
         text(
             """

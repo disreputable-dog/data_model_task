@@ -7,17 +7,17 @@ from init_db_connection import (
     init_engine_and_load_data,
     read_excel_to_dataframe,
 )
-from dml import (
+from ingest_orders_dml import (
     insert_into_dim_delivery_details,
     insert_into_dim_product_details,
     insert_into_dim_payment_details,
     insert_into_fact_orders,
 )
-from ddl import ddl
+from ddl import create_orders_tables
 
 
 @pytest.fixture
-def set_up():
+def conn():
     with init_engine_and_load_data(
         create_engine("sqlite:///:memory:"),
         "staging",
@@ -27,19 +27,19 @@ def set_up():
 
 
 @pytest.fixture
-def set_up_ddl(set_up):
-    ddl(set_up)
+def set_up_ddl(conn):
+    create_orders_tables(conn)
 
 
-# @pytest.fixture
-def insert_additional_data_to_stage(set_up):
+def insert_additional_data_to_stage(conn):
     """
     Inserts additional data, so that we can test how we handle slowly changing dimensions.
-    Duplicate data is inserted in the first row, in the second row the clients name changes,
-    In the third row the clients address changes
+    Duplicate data is inserted in the first row,
+    in the second row the a clients' name changes,
+    in the third row an existing clients' address changes
     """
 
-    set_up.execute(
+    conn.execute(
         text(
             """
             INSERT OR IGNORE INTO staging (OrderNumber, ClientName, ProductName, ProductType, UnitPrice, ProductQuantity, TotalPrice, Currency, DeliveryAddress, DeliveryCity, DeliveryPostcode, DeliveryCountry, DeliveryContactNumber, PaymentType, PaymentBillingCode, PaymentDate)
@@ -52,112 +52,109 @@ def insert_additional_data_to_stage(set_up):
     )
 
 
-def test_insert_into_dim_delivery_details(set_up_ddl, set_up):
-    insert_into_dim_delivery_details(set_up)
+def test_insert_into_dim_delivery_details(set_up_ddl, conn):
+    """
+    Tests that inserting into dim delivery works as expected
+    """
 
-    dim_delivery_details = Table(
-        "dim_delivery_details", MetaData(), autoload_with=set_up
-    )
+    insert_into_dim_delivery_details(conn)
 
-    results_as_dicts = [
-        row._asdict()
-        for row in set_up.execute(dim_delivery_details.select()).fetchall()
+    dim_delivery_details = Table("dim_delivery_details", MetaData(), autoload_with=conn)
+
+    results = [
+        row._asdict() for row in conn.execute(dim_delivery_details.select()).fetchall()
     ]
 
-    assert len(results_as_dicts) == 3
-    assert results_as_dicts[0]["DeliveryAddress"] == "45 Park Avenue"
-    assert results_as_dicts[1]["DeliveryPostcode"] == "SN4 9QP"
+    assert len(results) == 3
+    assert results[0]["DeliveryAddress"] == "45 Park Avenue"
+    assert results[1]["DeliveryPostcode"] == "SN4 9QP"
 
 
-def test_sld_insert_into_dim_product_details(set_up_ddl, set_up):
-    insert_additional_data_to_stage(set_up)
-    insert_into_dim_product_details(set_up)
+def test_sld_insert_into_dim_product_details(set_up_ddl, conn):
+    """
+    Tests that the SQL type 1 slowly changing dimensions is working correctly
+    """
 
-    dim_product_details = Table("dim_product_details", MetaData(), autoload_with=set_up)
+    insert_additional_data_to_stage(conn)
+    insert_into_dim_product_details(conn)
 
-    results_as_dicts = [
-        row._asdict() for row in set_up.execute(dim_product_details.select()).fetchall()
+    dim_product_details = Table("dim_product_details", MetaData(), autoload_with=conn)
+
+    results = [
+        row._asdict() for row in conn.execute(dim_product_details.select()).fetchall()
     ]
 
     assert (
-        len(results_as_dicts) == 5
+        len(results) == 5
     ), "Unexpect row count. Should remain as 4 as we're just updating"
     assert (
-        results_as_dicts[2]["UnitPrice"] == 5000
+        results[2]["UnitPrice"] == 5000
     ), "The price of existing piano data was not incremented"
 
 
-def test_idempotency_insert_into_dim_payment_details(set_up_ddl, set_up):
+def test_idempotency_insert_into_dim_payment_details(set_up_ddl, conn):
     """
     Tests that the insert query is idempotent - we run it twice and
     expect the result not to change
     """
 
-    insert_into_dim_payment_details(set_up)
+    insert_into_dim_payment_details(conn)
 
-    dim_payment_details = Table("dim_payment_details", MetaData(), autoload_with=set_up)
+    dim_payment_details = Table("dim_payment_details", MetaData(), autoload_with=conn)
 
-    results_as_dicts = [
-        row._asdict() for row in set_up.execute(dim_payment_details.select()).fetchall()
+    results = [
+        row._asdict() for row in conn.execute(dim_payment_details.select()).fetchall()
     ]
 
-    insert_into_dim_payment_details(set_up)
+    insert_into_dim_payment_details(conn)
 
     results_as_dicts_2 = [
-        row._asdict() for row in set_up.execute(dim_payment_details.select()).fetchall()
+        row._asdict() for row in conn.execute(dim_payment_details.select()).fetchall()
     ]
 
-    assert (
-        results_as_dicts == results_as_dicts_2
-    ), "dim_payment_details is not idempotent"
+    assert results == results_as_dicts_2, "dim_payment_details is not idempotent"
 
 
-def test_idempotency_insert_into_dim_delivery_details(set_up_ddl, set_up):
+def test_idempotency_insert_into_dim_delivery_details(set_up_ddl, conn):
     """
     Tests that the insert query is idempotent - we run it twice and
     expect the result not to change
     """
 
-    insert_into_dim_delivery_details(set_up)
+    insert_into_dim_delivery_details(conn)
 
-    dim_delivery_details = Table(
-        "dim_delivery_details", MetaData(), autoload_with=set_up
-    )
+    dim_delivery_details = Table("dim_delivery_details", MetaData(), autoload_with=conn)
 
-    results_as_dicts = [
-        row._asdict()
-        for row in set_up.execute(dim_delivery_details.select()).fetchall()
+    results = [
+        row._asdict() for row in conn.execute(dim_delivery_details.select()).fetchall()
     ]
 
-    insert_into_dim_delivery_details(set_up)
+    insert_into_dim_delivery_details(conn)
 
     results_as_dicts_2 = [
-        row._asdict()
-        for row in set_up.execute(dim_delivery_details.select()).fetchall()
+        row._asdict() for row in conn.execute(dim_delivery_details.select()).fetchall()
     ]
 
-    assert (
-        results_as_dicts == results_as_dicts_2
-    ), "dim_delivery_details is not idempotent"
+    assert results == results_as_dicts_2, "dim_delivery_details is not idempotent"
 
 
-def test_sld_insert_into_dim_delivery_details(set_up_ddl, set_up):
-    insert_into_dim_delivery_details(set_up)
-    dim_delivery_details = Table(
-        "dim_delivery_details", MetaData(), autoload_with=set_up
-    )
+def test_sld_insert_into_dim_delivery_details(set_up_ddl, conn):
+    """
+    Tests that the SQL type 2 slowly changing dimensions is working correctly
+    """
+
+    insert_into_dim_delivery_details(conn)
+    dim_delivery_details = Table("dim_delivery_details", MetaData(), autoload_with=conn)
 
     results_as_dicts_original = [
-        row._asdict()
-        for row in set_up.execute(dim_delivery_details.select()).fetchall()
+        row._asdict() for row in conn.execute(dim_delivery_details.select()).fetchall()
     ]
 
-    insert_additional_data_to_stage(set_up)
-    insert_into_dim_delivery_details(set_up)
+    insert_additional_data_to_stage(conn)
+    insert_into_dim_delivery_details(conn)
 
     results_as_dicts_new = [
-        row._asdict()
-        for row in set_up.execute(dim_delivery_details.select()).fetchall()
+        row._asdict() for row in conn.execute(dim_delivery_details.select()).fetchall()
     ]
 
     assert results_as_dicts_original != results_as_dicts_new
@@ -186,13 +183,18 @@ def test_sld_insert_into_dim_delivery_details(set_up_ddl, set_up):
     }, "The SCD didn't work properly"
 
 
-def test_fact_orders_consistency(set_up_ddl, set_up):
-    insert_into_dim_delivery_details(set_up)
-    insert_into_dim_product_details(set_up)
-    insert_into_dim_payment_details(set_up)
-    insert_into_fact_orders(set_up)
+def test_fact_orders_consistency(set_up_ddl, conn):
+    """
+    Tests that that the output is expected when joining the deliverys dim
+    and the orders fact table
+    """
 
-    result = set_up.execute(
+    insert_into_dim_delivery_details(conn)
+    insert_into_dim_product_details(conn)
+    insert_into_dim_payment_details(conn)
+    insert_into_fact_orders(conn)
+
+    result = conn.execute(
         text(
             """
             SELECT 
@@ -225,9 +227,9 @@ def test_fact_orders_consistency(set_up_ddl, set_up):
         )
     )
 
-    results_as_dicts = [row._asdict() for row in result]
+    results = [row._asdict() for row in result]
 
-    assert results_as_dicts[0] == {
+    assert results[0] == {
         "DeliveryId": 1,
         "ClientName": "Rath - Schroeder",
         "DeliveryAddress": "45 Park Avenue",

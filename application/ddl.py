@@ -3,7 +3,7 @@ from datetime import date
 from sqlalchemy import MetaData, Table, Column, String, Float, Integer, Date, ForeignKey
 
 
-def ddl(conn):
+def create_orders_tables(conn):
     metadata = MetaData()
 
     Table(
